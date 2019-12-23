@@ -1,13 +1,13 @@
 (ns clojure-game-geek.schema
   "Contains custom resolvers and a function to provide the full schema."
   (:require
-   [clojure.java.io :as io]
-   [com.walmartlabs.lacinia.util :as util]
-   [com.walmartlabs.lacinia.schema :as schema]
-   [com.walmartlabs.lacinia.resolve :refer [resolve-as]]
-   [com.stuartsierra.component :as component]
-   [clojure-game-geek.db :as db]
-   [clojure.edn :as edn]))
+    [clojure.java.io :as io]
+    [com.walmartlabs.lacinia.util :as util]
+    [com.walmartlabs.lacinia.schema :as schema]
+    [com.walmartlabs.lacinia.resolve :refer [resolve-as]]
+    [com.stuartsierra.component :as component]
+    [clojure-game-geek.db :as db]
+    [clojure.edn :as edn]))
 
 (defn game-by-id
   [db]
@@ -40,7 +40,7 @@
   (fn [_ _ board-game]
     (let [ratings (map :rating (db/list-ratings-for-game db (:id board-game)))
           n (count ratings)]
-      {:count n
+      {:count   n
        :average (if (zero? n)
                   0
                   (/ (apply + ratings)
@@ -59,23 +59,23 @@
 (defn rate-game
   [db]
   (fn [_ args _]
-    (let [{game-id :game_id
+    (let [{game-id   :game_id
            member-id :member_id
-           rating :rating} args
+           rating    :rating} args
           game (db/find-game-by-id db game-id)
           member (db/find-member-by-id db member-id)]
       (cond
         (nil? game)
         (resolve-as nil {:message "Game not found."
-                         :status 404})
+                         :status  404})
 
         (nil? member)
         (resolve-as nil {:message "Member not found."
-                         :status 404})
+                         :status  404})
 
         (not (<= 1 rating 5))
         (resolve-as nil {:message "Rating must be between 1 and 5."
-                         :status 400})
+                         :status  400})
 
         :else
         (do
@@ -85,14 +85,14 @@
 (defn resolver-map
   [component]
   (let [db (:db component)]
-    {:query/game-by-id (game-by-id db)
-     :query/member-by-id (member-by-id db)
-     :mutation/rate-game (rate-game db)
-     :BoardGame/designers (board-game-designers db)
+    {:query/game-by-id         (game-by-id db)
+     :query/member-by-id       (member-by-id db)
+     :mutation/rate-game       (rate-game db)
+     :BoardGame/designers      (board-game-designers db)
      :BoardGame/rating-summary (rating-summary db)
-     :GameRating/game (game-rating->game db)
-     :Designer/games (designer-games db)
-     :Member/ratings (member-ratings db)}))
+     :GameRating/game          (game-rating->game db)
+     :Designer/games           (designer-games db)
+     :Member/ratings           (member-ratings db)}))
 
 (defn load-schema
   [component]

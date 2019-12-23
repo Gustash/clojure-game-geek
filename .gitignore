@@ -9,5 +9,7 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /.vscode
+/.idea
 .hgignore
 .hg/
+*.iml
