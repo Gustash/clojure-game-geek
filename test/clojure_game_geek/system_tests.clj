@@ -4,7 +4,8 @@
     [clojure-game-geek.system :as system]
     [clojure-game-geek.test-utils :refer [simplify]]
     [com.stuartsierra.component :as component]
-    [com.walmartlabs.lacinia :as lacinia]))
+    [com.walmartlabs.lacinia :as lacinia]
+    [buddy.sign.jwt :as jwt]))
 
 (defn ^:private test-system
   "Creates a new system suitable for testing, and ensures that
@@ -24,7 +25,7 @@
 (deftest can-read-board-game
   (let [system (component/start-system (test-system))
         results (q system
-                   "{ game_by_id(id: 1234) { name summary min_players max_players play_time }}"
+                   "{ game_by_id(id:1234) { name summary min_players max_players play_time }}"
                    nil)]
     (is (= {:data {:game_by_id {:max_players 2
                                 :min_players 2
@@ -32,4 +33,13 @@
                                 :play_time   nil
                                 :summary     "Two player abstract with forced moves and shrinking board"}}}
            results))
+    (component/stop-system system)))
+
+(deftest can-login
+  (let [system (component/start-system (test-system))
+        results (q system
+                   "mutation { login(username: \"gustash_test\", password: \"password\") }"
+                   nil)
+        token (-> results :data :login)]
+    (is (= (-> (jwt/unsign token "key") :member :username) "gustash_test"))
     (component/stop-system system)))
