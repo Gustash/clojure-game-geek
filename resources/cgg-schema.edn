@@ -23,12 +23,12 @@
   :Member
   {:description "A member of Clojure Game Geek.  Members can rate games."
    :fields
-                {:member_id   {:type (non-null Int)}
-                 :member_name {:type        (non-null String)
-                               :description "Unique name of member."}
-                 :ratings     {:type        (list :GameRating)
-                               :description "List of games and ratings provided by this member."
-                               :resolve     :Member/ratings}}}
+                {:member_id {:type (non-null Int)}
+                 :username  {:type        (non-null String)
+                             :description "Unique name of member."}
+                 :ratings   {:type        (list :GameRating)
+                             :description "List of games and ratings provided by this member."
+                             :resolve     :Member/ratings}}}
 
   :GameRatingSummary
   {:description "Summary of ratings for a single game."
@@ -85,4 +85,24 @@
                  :member_id {:type (non-null Int)}
                  :rating    {:type        (non-null Int)
                              :description "Game rating as a number between 1 and 5."}}
-   :resolve     :mutation/rate-game}}}
+   :resolve     :mutation/rate-game}
+  :create_member
+  {:type        :Member
+   :description "Creates a new Member.
+
+   On success (the member didn't already exist), selects the created Member.
+   Otherwise, selects nil and an error."
+   :args
+                {:username {:type (non-null String)}
+                 :password {:type (non-null String)}}
+   :resolve     :mutation/create-member}
+  :login
+  {:type        String
+   :description "Checks credentials for a member.
+
+  Returns a token if the credentials are correct.
+  Otherwise, returns null."
+   :args
+                {:username {:type (non-null String)}
+                 :password {:type (non-null String)}}
+   :resolve     :mutation/login}}}

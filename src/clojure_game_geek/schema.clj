@@ -7,7 +7,8 @@
     [com.walmartlabs.lacinia.resolve :refer [resolve-as]]
     [com.stuartsierra.component :as component]
     [clojure-game-geek.db :as db]
-    [clojure.edn :as edn]))
+    [clojure.edn :as edn]
+    [io.pedestal.log :as log]))
 
 (defn game-by-id
   [db]
@@ -82,12 +83,42 @@
           (db/upsert-game-rating db game-id member-id rating)
           game)))))
 
+(defn create-member
+  [db]
+  (fn [_ args _]
+    (let [{username :username
+           password :password} args
+          member (db/find-member-by-name db username)]
+      (cond
+        (not (nil? member))
+        (resolve-as nil {:message "A Member with that name already exists."
+                         :status  400})
+
+        :else
+        (db/insert-member db username password)))))
+
+(defn login
+  [db]
+  (fn [_ args _]
+    (let [{username :username
+           password :password} args
+          token (db/login-member db username password)]
+      (cond
+        (nil? token)
+        (resolve-as nil {:message "Wrong credentials"
+                         :status  403})
+
+        :else
+        token))))
+
 (defn resolver-map
   [component]
   (let [db (:db component)]
     {:query/game-by-id         (game-by-id db)
      :query/member-by-id       (member-by-id db)
      :mutation/rate-game       (rate-game db)
+     :mutation/create-member   (create-member db)
+     :mutation/login           (login db)
      :BoardGame/designers      (board-game-designers db)
      :BoardGame/rating-summary (rating-summary db)
      :GameRating/game          (game-rating->game db)
